@@ -1,0 +1,23 @@
+#!/usr/bin/env just --justfile
+
+up := justfile_directory() / ".."
+top := env_var_or_default('TOP', up)
+set shell := ["bash", "-c"]
+
+@default:
+    just --list
+
+@pull:
+    git pull --rebase --autostash
+    git fetch -u origin main:main
+
+commit-check *ARGS:
+    @git add -A && git commit --verify {{ quote(ARGS) }}
+
+commit *ARGS: (commit-check ARGS)
+
+checkout *ARGS: && pull
+    @git checkout {{ ARGS }}
+
+amend *ARGS:
+    @git add -A && git commit --reset-author --amend --no-edit --date=now {{ quote(ARGS) }}

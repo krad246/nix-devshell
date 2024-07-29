@@ -1,0 +1,67 @@
+{
+    "name": "Docker dev shell",
+
+    "build": { "dockerfile": "../Dockerfile",
+               "context": "../" },
+
+    "containerUser": "root",
+    "workspaceFolder": "/workdir",
+
+    // Bind mount is recommended as that also gives the host access to the checked out files.
+    // However, perfomance can be poor if the host system is not linux. Volume mount could then
+    // be preferred.
+    "workspaceMount": "type=bind,consistency=cached,source=$TOP,target=$CONTAINER_TOP",
+
+    // When Docker daemon is running on Linux host (native/WSL/VM) with custom
+    // user name, uncomment this section:
+    "mounts": [
+        "type=bind,source=$HOST_SSH_KEYS,target=/root/.ssh",
+        "type=bind,source=/dev,target=/dev" ],
+
+    // Set environment variables inside Docker container.
+    // NODE_PATH: Path to npm modules, root path can be found by running 'npm root -g'
+    // Path to npm modules installed globally.
+    "containerEnv": {
+        "NODE_PATH": "/usr/lib/node_modules",
+        "WORKDIR": "$CONTAINER_TOP",
+        "TOP":"$CONTAINER_TOP",
+        "REPO":"$REPO"
+    },
+
+    // Needed for USB access
+    "runArgs": [
+        "--privileged",
+        "--volume=$HOME/.Xauthority:/root/.Xauthority:rw",
+        "--volume=/tmp/.X11-unix/:/tmp/.X11-unix",
+        "-e DISPLAY",
+        "--net=host",
+    ],
+
+    "customizations": {
+        "vscode": {
+            // Useful extensions to have
+            "extensions": [
+                "marus25.Cortex-Debug", // For debugging purposes
+                "robocorp.robotframework-lsp", // For Robot integraion tests
+                "EditorConfig.EditorConfig", // Editorconfig for file format
+                "ms-vscode.cpptools", // Adds language support for C/C++ to VSCode
+                "ms-vscode.live-server", // HTML to preview robot tests in VSCode
+                "ms-python.python", // Python support in VSCode
+                "jebbs.plantuml", // Plantuml support in VSCode to create diagrams
+                "twxs.cmake", // CMake support in VSCode
+                "ms-vscode.cmake-tools", // CMake tools extension package for further support
+                "ms-python.flake8", // Linting support for python files using `flake8`
+                "cschlosser.doxdocgen", // Doxygen templates and auto-completion
+                "llvm-vs-code-extensions.vscode-clangd", // Lint as you type for C code
+                "nordic-semiconductor.nrf-connect-extension-pack"
+        ]
+
+            "settings": {
+
+            }
+        }
+    },
+
+    "initializeCommand": "true",
+    "postStartCommand": [ "/bin/bash", "/scripts/startup.bash" ]
+}

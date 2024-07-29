@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+eval "$(direnv stdlib)"
+strict_env
+
+SCRIPT=$(realpath "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+[[ "${VERBOSE:-0}" -eq 1 ]] && set -v
+[[ "${DEBUG:-0}" -eq 1 ]] && set -x
+
+if [[ ${VERBOSE:-0} -eq 1 ]]; then
+    ARGS+=(--log-level "trace")
+fi
+
+
+if [[ ${DEBUG:-0} -eq 1 ]]; then
+    ARGS+=(--log-level "debug")
+fi
+
+env --chdir "$SCRIPTPATH" devcontainer "$@"
