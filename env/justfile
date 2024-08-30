@@ -1,23 +1,41 @@
 #!/usr/bin/env just --justfile
 
-up := justfile_directory() / ".."
-top := env_var_or_default('TOP', up)
+top := env_var('TOP')
+jpath := canonicalize(source_file())
+jdir := parent_directory(jpath)
+
 set shell := ["bash", "-c"]
 
 @default:
     just --list
 
-@pull:
-    git pull --rebase --autostash
-    git fetch -u origin main:main
+[private]
+_checkout +ARGS='':
+    git checkout {{ ARGS }}
 
-commit-check *ARGS:
-    @git add -A && git commit --verify {{ quote(ARGS) }}
+[private]
+_pull +ARGS='':
+    git pull --rebase --autostash {{ ARGS }}
+    touch "$PWD/.envrc"
 
-commit *ARGS: (commit-check ARGS)
+[private]
+_commit_no_message +ARGS='': (check ARGS)
+    git commit {{ ARGS }}
 
-checkout *ARGS: && pull
-    @git checkout {{ ARGS }}
+[private]
+_commit_message MESSAGE +ARGS='': (_commit_no_message ARGS '-m' quote(MESSAGE))
 
-amend *ARGS:
-    @git add -A && git commit --reset-author --amend --no-edit --date=now {{ quote(ARGS) }}
+[private]
+_add +ARGS='':
+    git add {{ ARGS }}
+
+check +ARGS='':
+    git commit --dry-run {{ ARGS }}
+
+commit MESSAGE +ARGS='': (_commit_message MESSAGE ARGS)
+
+amend +ARGS='': (_add '-A') (_commit_no_message '--amend --no-edit --reuse-message=HEAD' ARGS)
+
+rebase BRANCH=("main") +ARGS='': (_checkout BRANCH) _pull (_checkout '-')
+    git rebase --autostash {{ BRANCH }} {{ ARGS }}
+
