@@ -50,6 +50,6 @@
           pre-commit-hooks-nix.flakeModule
           just-flake.flakeModule
         ]);
-      systems = ["x86_64-linux"];
+      systems = ["x86_64-linux" "aarch64-darwin"];
     };
 }
